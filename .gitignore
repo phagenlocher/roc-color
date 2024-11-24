@@ -1,0 +1,6 @@
+.devcontainer/
+.vscode/
+examples/ansi
+examples/simple
+examples/color256bit
+examples/truecolor
