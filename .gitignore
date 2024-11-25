@@ -4,3 +4,5 @@ examples/ansi
 examples/simple
 examples/color256bit
 examples/truecolor
+examples/manualSGR
+generated-docs
