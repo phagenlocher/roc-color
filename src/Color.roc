@@ -36,8 +36,6 @@ module [
     resetGraphicRendition,
 ]
 
-Optional a : [None, Some a]
-
 DisplayAttribute : [Blink, Bold, Italic, Dim, Hidden, Reset, Reverse, Underscore]
 
 AnsiColor := [Black, Blue, Cyan, Green, Magenta, Red, White, Yellow]
@@ -46,7 +44,7 @@ Color256Bit := U8
 
 TrueRGB := { r : U8, g : U8, b : U8 }
 
-Color := [Ansi AnsiColor, Bit256 Color256Bit, TrueColor TrueRGB]
+Color := [Ansi AnsiColor, Bit256 Color256Bit, TrueColor TrueRGB, NotSpecified]
 
 ansi : [Black, Blue, Cyan, Green, Magenta, Red, White, Yellow] -> Color
 ansi = \x -> @Color (Ansi (@AnsiColor x))
@@ -86,31 +84,30 @@ underscore = Display Underscore
 
 formatWith : List [Display DisplayAttribute, Foreground Color, Background Color], Str -> Str
 formatWith = \attributes, s ->
-    selected : { attrs : List DisplayAttribute, bgColor : Optional Color, fgColor : Optional Color }
+    selected : { attrs : List DisplayAttribute, bgColor : Color, fgColor : Color }
     selected =
-        List.walk attributes { attrs: [], bgColor: None, fgColor: None } \state, attr ->
+        List.walk attributes { attrs: [], bgColor: @Color NotSpecified, fgColor: @Color NotSpecified } \state, attr ->
             when attr is
                 Display displayAttr -> { state & attrs: List.append state.attrs displayAttr }
-                Foreground color -> { state & fgColor: Some color }
-                Background color -> { state & bgColor: Some color }
+                Foreground color -> { state & fgColor: color }
+                Background color -> { state & bgColor: color }
     options = { attrs: selected.attrs, bgColor: selected.bgColor, fgColor: selected.fgColor }
     "$(selectGraphicRendition options)$(s)$(resetGraphicRendition)"
 
-selectGraphicRendition : { attrs ? List DisplayAttribute, bgColor ? Optional Color, fgColor ? Optional Color } -> Str
-selectGraphicRendition = \{ attrs ? [], bgColor ? None, fgColor ? None } ->
+selectGraphicRendition : { attrs ? List DisplayAttribute, bgColor ? Color, fgColor ? Color } -> Str
+selectGraphicRendition = \{ attrs ? [], bgColor ? @Color NotSpecified, fgColor ? @Color NotSpecified } ->
+    bgColorCode = colorCode Background bgColor
+    fgColorCode = colorCode Foreground fgColor
+    colorCodes = List.dropIf [bgColorCode, fgColorCode] Str.isEmpty
+    attributeCodes = List.map attrs attributeCode
+
     attributes : Str
     attributes =
-        List.map attrs attributeCode
+        List.concat attributeCodes colorCodes
         |> List.intersperse ";"
         |> List.walk "" Str.concat
 
-    getColorCode : [Background, Foreground], Optional Color -> Str
-    getColorCode = \mode, x ->
-        when x is
-            None -> ""
-            Some color -> ";$(colorCode mode color)"
-
-    "\u(001b)[$(attributes)$(getColorCode Background bgColor)$(getColorCode Foreground fgColor)m"
+    "\u(001b)[$(attributes)m"
 
 resetGraphicRendition : Str
 resetGraphicRendition = "\u(001b)[0m"
@@ -130,6 +127,9 @@ attributeCode = \attr ->
 colorCode : [Background, Foreground], Color -> Str
 colorCode = \mode, @Color color ->
     when color is
+        NotSpecified ->
+            ""
+
         Ansi (@AnsiColor ansiColor) ->
             when mode is
                 Foreground ->
