@@ -38,22 +38,23 @@ module [
 
 DisplayAttribute : [Blink, Bold, Italic, Dim, Hidden, Reset, Reverse, Underscore]
 
-AnsiColor := [Black, Blue, Cyan, Green, Magenta, Red, White, Yellow]
+AnsiColor : [Black, Blue, Cyan, Green, Magenta, Red, White, Yellow]
 
-Color256Bit := U8
-
-TrueRGB := { r : U8, g : U8, b : U8 }
-
-Color := [Ansi AnsiColor, Bit256 Color256Bit, TrueColor TrueRGB, NotSpecified]
+Color := [
+    Ansi AnsiColor,
+    Color256Bit U8,
+    TrueColor { r : U8, g : U8, b : U8 },
+    NotSpecified,
+]
 
 ansi : [Black, Blue, Cyan, Green, Magenta, Red, White, Yellow] -> Color
-ansi = \x -> @Color (Ansi (@AnsiColor x))
+ansi = \x -> @Color (Ansi x)
 
 color256bit : U8 -> Color
-color256bit = \x -> @Color (Bit256 (@Color256Bit x))
+color256bit = \x -> @Color (Color256Bit x)
 
 rgb : U8, U8, U8 -> Color
-rgb = \r, g, b -> @Color (TrueColor (@TrueRGB { r, g, b }))
+rgb = \r, g, b -> @Color (TrueColor { r, g, b })
 
 black = Foreground (ansi Black)
 blue = Foreground (ansi Blue)
@@ -130,7 +131,7 @@ colorCode = \mode, @Color color ->
         NotSpecified ->
             ""
 
-        Ansi (@AnsiColor ansiColor) ->
+        Ansi ansiColor ->
             when mode is
                 Foreground ->
                     when ansiColor is
@@ -154,14 +155,14 @@ colorCode = \mode, @Color color ->
                         Cyan -> "46"
                         White -> "47"
 
-        Bit256 (@Color256Bit n) ->
+        Color256Bit n ->
             modeCode =
                 when mode is
                     Foreground -> "38"
                     Background -> "48"
             "$(modeCode);5;$(Num.toStr n)"
 
-        TrueColor (@TrueRGB { r, g, b }) ->
+        TrueColor { r, g, b } ->
             modeCode =
                 when mode is
                     Foreground -> "38"
