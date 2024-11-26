@@ -6,7 +6,7 @@ app [main] {
 import cli.Stdout
 import color.Color exposing [formatWith, bold, underscore, italic, red, green, blue, whiteBg]
 
-main = Stdout.write
+main = Stdout.line
     """
     This is $(formatWith [bold] "bold") text mixed with $(formatWith [underscore] "underlined") text.
     Text can also be $(formatWith [red] "col")$(formatWith [green] "or")$(formatWith [blue] "ful")!
