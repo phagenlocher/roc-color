@@ -5,4 +5,5 @@ examples/simple
 examples/color256bit
 examples/truecolor
 examples/manualSGR
+examples/hex
 generated-docs

@@ -19,6 +19,7 @@ module [
     ansi,
     color256bit,
     rgb,
+    rgbHex,
     black,
     blue,
     cyan,
@@ -46,6 +47,8 @@ module [
     foreground,
     background,
 ]
+
+import Hex
 
 ## Type that represents a color code for formatting.
 ## Use `ansi`, `color256bit` or `rgb` to construct it.
@@ -148,6 +151,29 @@ color256bit = \x -> @Color (Color256Bit x)
 ## fine-grained control of colors you should stick with `AnsiColor` values.
 rgb : U8, U8, U8 -> Color
 rgb = \r, g, b -> @Color (TrueColor { r, g, b })
+
+## Interprets a [hexadecimal color](https://en.wikipedia.org/wiki/Web_colors)
+## as a Truecolor RGB color. If the supplied string fails to parse, the color
+## will not influence formatting.
+##
+## ## Format
+## `#rrggbb` or `#rgb`
+##
+## The string must contain 3 bytes in hexadecimal format (00-FF).
+## Alternatively, the string can only consist of three characters (0-F) that
+## describe the individual bytes to be made up of the specified character
+## twice, meaning that `F` turns into `FF` and `5` turns into `55`.
+## Letters can be uppercase or lowercase. The string can be prefixed with an
+## optional `#`.
+##
+## ## Examples
+## `"#000"` results in black color.
+## `"#1E90FF"` is an RGB value of (30, 144, 255).
+rgbHex : Str -> Color
+rgbHex = \s ->
+    when Hex.fromHexStr s is
+        Ok { r, g, b } -> rgb r g b
+        Err InvalidHexFormat -> @Color NotSpecified
 
 attributeCode : DisplayAttribute -> Str
 attributeCode = \attr ->
