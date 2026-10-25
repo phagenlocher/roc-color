@@ -21,9 +21,9 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v4
       - name: Install Roc
-        uses: hasnep/setup-roc@main
+        uses: roc-lang/setup-roc@cbe782d6f165b89c87d99f50a59ac4f5f73b4427
         with:
-          roc-version: nightly
+          version: nightly-new-compiler
       - name: Check formatting
         run: roc fmt --check src examples
       - name: Type-check the library
