@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+      - name: Install Roc
+        uses: roc-lang/setup-roc@cbe782d6f165b89c87d99f50a59ac4f5f73b4427
+        with:
+          version: nightly-new-compiler
+      - name: Check formatting
+        run: roc fmt --check src examples
+      - name: Type-check the library
+        run: roc check src/main.roc
+      - name: Type-check the examples
+        run: |
+          for example in examples/*.roc; do
+            echo "Checking ${example}"
+            roc check "${example}"
+          done
+      - name: Run tests
+        run: roc test src/main.roc
