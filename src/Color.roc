@@ -261,3 +261,15 @@ modeCode = |mode| match mode {
 }
 
 expect Color.resetGraphicRendition == Color.selectGraphicRendition({ attrs: [Reset] })
+
+expect Color.formatWith([Color.bold, Color.red], "x") == "\u(1b)[1;31mx\u(1b)[0m"
+
+expect Color.formatWith([Color.bold, Color.redBg, Color.foreground(Color.color256bit(42))], "x") == "\u(1b)[1;41;38;5;42mx\u(1b)[0m"
+
+expect Color.formatWith([Color.background(Color.rgbHex("#6495ED")), Color.foreground(Color.rgb(30, 144, 255))], "x") == "\u(1b)[48;2;100;149;237;38;2;30;144;255mx\u(1b)[0m"
+
+expect Color.selectGraphicRendition({}) == "\u(1b)[m"
+
+expect Color.selectGraphicRendition({ attrs: [Bold, Underscore] }) == "\u(1b)[1;4m"
+
+expect Color.formatWith([Color.foreground(Color.rgbHex("not-a-color"))], "x") == "\u(1b)[mx\u(1b)[0m"

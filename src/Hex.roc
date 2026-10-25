@@ -102,3 +102,9 @@ expect {
 	hexColor = Hex.fromHexStr("#6495ED")
 	hexColor == Ok({ r: 100, g: 149, b: 237 })
 }
+
+expect Hex.fromHexStr("ggg") == Err(InvalidHexFormat)
+expect Hex.fromHexStr("12") == Err(InvalidHexFormat)
+expect Hex.fromHexStr("#12345") == Err(InvalidHexFormat)
+expect Hex.fromHexStr("") == Err(InvalidHexFormat)
+expect Hex.fromHexStr("#AbC") == Ok({ r: 170, g: 187, b: 204 })
